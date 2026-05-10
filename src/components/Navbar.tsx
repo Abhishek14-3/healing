@@ -1,0 +1,102 @@
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+
+const navLinks = [
+  { to: '/', label: 'Home' },
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/luna-tracker', label: 'Luna' },
+  { to: '/insights', label: 'Insights' },
+  { to: '/therapist', label: 'Therapist' },
+];
+
+const Navbar = () => {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location]);
+
+  return (
+    <nav
+      className={`navbar-glass sticky top-0 z-50 flex items-center justify-between px-6 transition-all duration-300 border-b ${
+        scrolled ? 'py-3 scrolled' : 'py-4'
+      }`}
+    >
+      <Link
+        to="/"
+        className="flex items-center gap-2 text-foreground no-underline transition-colors hover:text-botanical-dark"
+      >
+        <span className="text-xl">🌿</span>
+        <span className="font-heading text-xl font-bold tracking-tight">
+          Healing Hub
+        </span>
+      </Link>
+
+      <button
+        onClick={() => setMenuOpen(!menuOpen)}
+        className="md:hidden text-xl text-foreground bg-transparent border-none cursor-pointer"
+        aria-label="Toggle menu"
+      >
+        {menuOpen ? '✕' : '☰'}
+      </button>
+
+      <ul
+        className={`list-none gap-6 items-center ${
+          menuOpen
+            ? 'navbar-glass flex flex-col absolute top-full left-0 w-full py-4 px-6 gap-3 border-b md:flex-row md:relative md:top-auto md:w-auto md:p-0 md:border-b-0'
+            : 'hidden md:flex'
+        }`}
+      >
+        {navLinks.map((link) => (
+          <li key={link.to}>
+            <Link
+              to={link.to}
+              className={`relative text-sm font-medium tracking-wide no-underline transition-colors pb-1 ${
+                location.pathname === link.to
+                  ? 'text-botanical-dark'
+                  : 'text-foreground hover:text-botanical-dark'
+              }`}
+              style={{
+                borderBottom:
+                  location.pathname === link.to
+                    ? '2px solid hsl(135, 30%, 55%)'
+                    : '2px solid transparent',
+              }}
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
+        <li>
+          {user ? (
+            <button
+              onClick={() => signOut()}
+              className="text-sm font-semibold px-4 py-1.5 rounded-full bg-primary text-primary-foreground border-none cursor-pointer transition-all hover:-translate-y-0.5"
+            >
+              Sign out
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="text-sm font-semibold px-4 py-1.5 rounded-full bg-primary text-primary-foreground no-underline transition-all hover:-translate-y-0.5 inline-block"
+            >
+              Sign in
+            </Link>
+          )}
+        </li>
+      </ul>
+    </nav>
+  );
+};
+
+export default Navbar;
